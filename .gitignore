@@ -1,0 +1,4 @@
+samples/a.out
+build/
+*.o
+output.txt
