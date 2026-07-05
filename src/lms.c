@@ -4,12 +4,17 @@
 /* ##### LMS INSTRUCTIONS ##### */
 #define READ        10      // A1
 #define WRITE       11      // A2
+#define READ_STR    12      // A3
+#define WRITE_STR   13      // A4
+#define PUT_NEWLINE 14      // A5
 #define LOAD        20      // B1
 #define STORE       21      // B2
 #define ADDITION    30      // C1
 #define SUBSTRACT   31      // C2
 #define MULTIPLY    32      // C3
 #define DIVIDE      33      // C4
+#define MODULE      34      // C5
+#define POWER       35      // C5
 #define JUMPTO      40      // D1
 #define JUMPIFNEG   41      // D2
 #define JUMPIFCERO  42      // D3
@@ -86,6 +91,18 @@ void exec_instructions(void)
             jump(mem_pos);
             write();
             break;
+        case READ_STR:
+            jump(mem_pos);
+            read_str();
+            break;
+        case WRITE_STR:
+            jump(mem_pos);
+            write_str();
+            break;
+        case PUT_NEWLINE:
+            jump(mem_pos);
+            put_newline();
+            break;
         case LOAD:
             jump(mem_pos);
             load();
@@ -109,6 +126,14 @@ void exec_instructions(void)
         case DIVIDE:
             jump(mem_pos);
             divide();
+            break;
+        case MODULE:
+            jump(mem_pos);
+            module();
+            break;
+        case POWER:
+            jump(mem_pos);
+            power();
             break;
         case JUMPTO:
             jump(mem_pos);
@@ -150,10 +175,90 @@ void read(void)
     scanf("%d", (cursor_memory));
 }
 
+void read_str(void)
+{
+    getchar();
+
+    if (cursor_memory < simpletron_memory
+        || cursor_memory >= simpletron_memory + POS_COUNT)
+        return;
+
+    unsigned avail_words = (unsigned)(simpletron_memory + POS_COUNT - cursor_memory);
+    unsigned int *mem = (unsigned int *)cursor_memory;
+
+    mem[0] = 0;
+
+    unsigned i = 0;
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+        unsigned char uc = (unsigned char)c;
+
+        if (i < 2)
+            mem[0] |= (unsigned int)uc << (8 * i);
+        else
+        {
+            unsigned j = i - 2;
+            unsigned wi = 1 + j / 4;
+            unsigned bi = j % 4;
+            if (wi >= avail_words)
+                break;
+            if (bi == 0)
+                mem[wi] = 0;
+            mem[wi] |= (unsigned int)uc << (8 * bi);
+        }
+        i++;
+    }
+
+    mem[0] |= (unsigned int)(i & 0xFFFFu) << 16;
+}
+
 void write(void)
 {
     printf("%d", *(cursor_memory));
     fprintf(ptrOutputFile, "%d", *(cursor_memory));
+}
+
+void write_str(void)
+{
+    if (cursor_memory < simpletron_memory
+        || cursor_memory >= simpletron_memory + POS_COUNT)
+        return;
+
+    unsigned avail_words = (unsigned)(simpletron_memory + POS_COUNT - cursor_memory);
+    const unsigned int *mem = (const unsigned int *)cursor_memory;
+
+    unsigned int w0 = mem[0];
+    unsigned n = (w0 >> 16) & 0xFFFFu;
+    unsigned max_chars = 2 + (avail_words - 1U) * 4U;
+    if (n > max_chars)
+        n = max_chars;
+
+    for (unsigned i = 0; i < n; i++)
+    {
+        unsigned char byte;
+        if (i < 2)
+            byte = (unsigned char)((w0 >> (8 * i)) & 0xFFu);
+        else
+        {
+            unsigned j = i - 2;
+            unsigned widx = 1 + j / 4;
+            unsigned bout = j % 4;
+            if (widx >= avail_words)
+                break;
+            byte = (unsigned char)((mem[widx] >> (8 * bout)) & 0xFFu);
+        }
+        printf("%c", byte);
+        fprintf(ptrOutputFile, "%c", byte);
+    }
+    printf("\n");
+    fprintf(ptrOutputFile, "\n");
+}
+
+void put_newline(void)
+{
+    printf("\n");
+    fprintf(ptrOutputFile, "\n");
 }
 
 void load(void)
@@ -190,6 +295,50 @@ void divide(void)
         return;
     }
     acumulator /= *(cursor_memory);
+}
+
+void module(void)
+{
+    int tmp_acumulator = (int)acumulator;
+    if (*(cursor_memory) == 0)
+    {
+        printf("Error: Module by zero\n");
+        fprintf(ptrOutputFile, "Error: Module by zero\n");
+        return;
+    }
+    if (acumulator - (int)acumulator != 0 || *(cursor_memory) - (int)*(cursor_memory) != 0)
+    {
+        printf("Error: Module by non-integer\n");
+        fprintf(ptrOutputFile, "Error: Module by non-integer\n");
+        return;
+    }
+    acumulator = tmp_acumulator % (int)*(cursor_memory);
+}
+
+void power(void)
+{
+    int exp = *(cursor_memory);
+    int base = acumulator;
+    if (exp - (int)exp != 0)
+    {
+        printf("Error: Power by non-integer\n");
+        fprintf(ptrOutputFile, "Error: Power by non-integer\n");
+        return;
+    }
+    if (exp == 0)
+    {
+        acumulator = 1;
+        return;
+    }
+    while (exp < 0)
+    {
+        acumulator /= base;
+        exp++;
+    }
+    while (--exp > 0)
+    {
+        acumulator *= base;
+    }
 }
 
 void jump(const int pos)
