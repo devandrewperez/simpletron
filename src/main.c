@@ -1,9 +1,8 @@
-#include "lms.h"
+#include "simple.h"
 
 int main(void)
 {
-    send_welcome_msg();
-    get_instructions();
-    exec_instructions();
+    getInstructions();
+    execInstructions();
     return 0;
 }

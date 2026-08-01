@@ -7,7 +7,7 @@ BUILD   = build
 
 SRCS    = \
           src/main.c \
-          src/lms.c
+          src/simple/compiler.c
 
 OBJS    = $(patsubst src/%.c,$(BUILD)/%.o,$(SRCS))
 
