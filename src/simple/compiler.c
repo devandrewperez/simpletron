@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "simple.h"
+#include "postfix.h"
 
 #define REM     "rem"   // comentary
 #define LET     "let"   // declare variables
@@ -353,6 +354,8 @@ void trimWhitespace(char * str)
 // -------------------------------------------- //
 int let(char * arg)
 {
+    int n;
+    char * opsFrom;
     char * eq;
     char * rhs;
     char varName;
@@ -406,17 +409,80 @@ int let(char * arg)
     if (VAR_PTR(varName) == NULL)
         VAR_PTR(varName) = cursorMemory++;
 
-    if (!strpbrk(rhs, FULL_ALPHABET))
+    opsFrom = rhs;
+    if (rhs[0] == '+' || rhs[0] == '-')
+        opsFrom = rhs + 1;
+
+    if (!strpbrk(rhs, FULL_ALPHABET) && !strpbrk(opsFrom, "()+-*/%"))
     {
         if (isStrNumber(rhs) == FAILED)
             return FAILED;
         VAR_VALUE(varName) = (int)strtod(rhs, NULL);
     }
-    else
+    else if (!strpbrk(rhs, "()+-*/%"))
     {
         if (isValidVar(*rhs) == FAILED)
             return FAILED;
         VAR_VALUE(varName) = VAR_VALUE(*rhs);
+    }
+    else
+    {
+        char * var = rhs;
+        int size = strlen(rhs);
+
+        while ((var = strpbrk(var, FULL_ALPHABET)))
+        {
+            if (isValidVar(*var) == FAILED)
+                return FAILED;
+
+            n = VAR_VALUE(*var);
+            size--;
+            if (n == 0)
+                size++;
+
+            while (n)
+            {
+                n /= 10;
+                size++;
+            }
+
+            var++;
+        }
+
+        size += 2;
+        char temp[size];
+        char tempPostfix[size];
+        memset(temp, 0, (size_t)size);
+        memset(tempPostfix, 0, (size_t)size);
+
+        for (int j = 0, i = 0; rhs[i] != '\0'; i++)
+        {
+            if (!isalpha(*(rhs+i)))
+            {
+                sprintf(temp+j, "%c", *(rhs+i));
+                j++;
+            }
+            else
+            {
+                if (isValidVar(*(rhs+i)) == FAILED)
+                    return FAILED;
+
+                int value = VAR_VALUE(*(rhs+i));
+                n = value;
+                int digits = (value == 0) ? 1 : 0;
+
+                while (n)
+                {
+                    n /= 10;
+                    digits++;
+                }
+                sprintf(temp+j, "%d", value);
+                j += digits;
+            }
+        }
+
+        convertToPostfix(temp, tempPostfix);
+        VAR_VALUE(varName) = evaluatePostfixExpression(tempPostfix);
     }
     VAR_CHAR(varName) = varName;
     VAR_USE(varName) = 1;
