@@ -5,7 +5,7 @@
 #include "simple.h"
 #include "postfix.h"
 
-#define REM     "rem"   // comentary
+#define REM     "rem"   // comment
 #define LET     "let"   // declare variables
 #define INPUT   "input" // get a value
 #define PRINT   "print" // print a value
@@ -27,7 +27,7 @@
 #define   VAR_USE(varName)     vars[varName-'a'].using
 
 #define SUCCESSFUL  1
-#define FAILED      2           // cambiar mas adelante a -1 si es necesario
+#define FAILED      2           // change to -1 later if needed
 
 
 typedef struct
@@ -195,7 +195,7 @@ void execInstructions(void)
     if (lineExec == FAILED)
         printf("\n*** Execution finished with error ***\n");
     else
-        printf("\n*** Execution finished succefully  ***\n");
+        printf("\n*** Execution finished successfully  ***\n");
 
     // fclose(ptrOutputFile);
     // printf("*** Results saved in \"%s\" ***\n", OUTPUT_FILE_NAME);
@@ -253,7 +253,7 @@ int insert(int lineId, char * instruction, char * arg)
     {
         if (lastLine->line->lineId > new->line->lineId)
         {
-            printf("ERROR: Line %d can't be after line %d, but the limes should be ordered from less to higher", 
+            printf("ERROR: Line %d can't be after line %d, but the lines should be ordered from lowest to highest", 
                     new->line->lineId, lastLine->line->lineId);
             free(newLine->instruction);
             free(newLine->argument);
@@ -477,7 +477,7 @@ int let(char * arg)
         return FAILED;
     }
 
-    /* buscar la variable destino antes del '=' */
+    /* find the destination variable before '=' */
     varName = '\0';
     for (char *p = arg; p < eq; p++)
     {
@@ -695,7 +695,7 @@ int ifGoto(InstructionsListPtr *cursor, char * arg, int * jumped)
     if (condResult == FAILED)
         return FAILED;
     if (!condResult)
-        return SUCCESSFUL; /* condición falsa: no salta, pero no es error */
+        return SUCCESSFUL; /* false condition: do not jump, not an error */
     
     if (isStrNumber(posToJump) == FAILED)
         return FAILED;
