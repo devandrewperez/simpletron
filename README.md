@@ -2,6 +2,10 @@
 
 SIMPLE language interpreter and LMS (Simpletron Machine Language) virtual machine.
 
+The SIMPLE language and the LMS instruction set are described in [`docs/simpletron.md`](docs/simpletron.md).
+
+Examples in `samples/`: `sum.simple`, `comparison.simple`, `prime.simple`. LMS sample: `sum.lms`.
+
 ## Build
 
 ```bash
@@ -21,14 +25,6 @@ The program asks for a source file name in the current directory (for example `s
 
 `make run` builds if needed and starts the program from `samples/`.
 
-## SIMPLE language
-
-Instructions: `rem`, `let`, `input`, `print`, `goto`, `if … goto`, `end`.
-
-Variables are a single lowercase letter (`a`–`z`). Line numbers must be in increasing order.
-
-Examples in `samples/`: `sum.simple`, `comparison.simple`, `prime.simple`.
-
 ## LMS
 
-`src/lms.c` is the machine-code VM. It is not linked by the current `Makefile`. See `samples/sum.lms` for an example.
+`src/lms.c` is the machine-code VM. It is not linked by the current `Makefile`. See [`docs/simpletron.md#lms`](docs/simpletron.md#lms) for the language reference.
