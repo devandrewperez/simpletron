@@ -9,6 +9,8 @@
 #define LET     "let"   // declare variables
 #define INPUT   "input" // get a value
 #define PRINT   "print" // print a value
+#define GOTO    "goto"  // move to a line in the code
+#define IF      "if"    // evaluate condition
 #define END     "end"   // end program
 
 #define POS_COUNT           1000
@@ -16,6 +18,7 @@
 #define FILE_NAME_SIZE      100
 
 #define POSIBLE_VAR_COUNT   'z' - 'a' + 1
+#define ALPHABET            "abcdefghijklmnopqrstuvwxyz"
 #define FULL_ALPHABET       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 #define VAR_VALUE(varName)   *(vars[varName-'a'].ptrMemPos)
@@ -72,9 +75,13 @@ int isListEmpty(void);
 int isValidVar(char varName);
 int isStrNumber(char * num);
 void trimWhitespace(char * str);
+InstructionsListPtr findLine(int lineId);
+int isTrue(char * condition);
 int let(char * arg);
 int input(char * varName);
 int print(const char * varName);
+int goTo(InstructionsListPtr *cursor, char * arg, int * jumped);
+int ifGoto(InstructionsListPtr *cursor, char * arg, int * jumped);
 
 
 
@@ -161,9 +168,11 @@ void execInstructions(void)
     initializeVarMatrix();
 
     InstructionsListPtr cursorInstruction = instructions;
+    // ptrOutputFile = fopen(OUTPUT_FILE_NAME, "w+");
     printf("\n*** Executing instructions ***\n\n");
 
     int lineExec = SUCCESSFUL;
+    int jumped = 0;
     while (lineExec == SUCCESSFUL && cursorInstruction != NULL)
     {
         if (!strcmp(INSTRUCTION, END)) break;
@@ -173,8 +182,14 @@ void execInstructions(void)
             lineExec = input(ARGUMENT);
         else if (!strcmp(INSTRUCTION, PRINT))
             lineExec = print(ARGUMENT);
+        else if (!strcmp(INSTRUCTION, GOTO))
+            lineExec = goTo(&cursorInstruction, ARGUMENT, &jumped);
+        else if (!strcmp(INSTRUCTION, IF))
+            lineExec = ifGoto(&cursorInstruction, ARGUMENT, &jumped);
 
-        cursorInstruction = cursorInstruction->next;
+        if (!jumped)
+            cursorInstruction = cursorInstruction->next;
+        jumped = 0;
     }
 
     if (lineExec == FAILED)
@@ -182,13 +197,16 @@ void execInstructions(void)
     else
         printf("\n*** Execution finished succefully  ***\n");
 
+    // fclose(ptrOutputFile);
+    // printf("*** Results saved in \"%s\" ***\n", OUTPUT_FILE_NAME);
+    // printf("*** Goodbye! ***\n");
     return;
 }
 
 int isInstruction(char * inst)
 {
-    return (!strcmp(inst, REM) || !strcmp(inst, LET) || !strcmp(inst, INPUT) ||
-            !strcmp(inst, PRINT) || !strcmp(inst, END));
+    return (!strcmp(inst, REM) || !strcmp(inst, LET) || !strcmp(inst, INPUT) || !strcmp(inst, PRINT) ||
+            !strcmp(inst, GOTO) || !strcmp(inst, IF) || !strcmp(inst, END));
 }
 
 // -------------------------------------------- //
@@ -350,6 +368,92 @@ void trimWhitespace(char * str)
 }
 
 // -------------------------------------------- //
+// --------------- USEFUL TOOLS --------------- //
+// -------------------------------------------- //
+InstructionsListPtr findLine(int lineId)
+{
+    InstructionsListPtr cursor = instructions;
+
+    while (cursor && cursor->line->lineId != lineId)
+        cursor = cursor->next;
+
+    return cursor;
+}
+
+int isTrue(char * condition)
+{
+    #define LESS_THAN           "<"
+    #define LESS_EQUAL_THAN     "<="
+    #define HIGHER_EQUAL_THAN   ">="
+    #define HIGHER_THAN         ">"
+    #define EQUAL_TO            "=="
+    #define DIFF_FROM           "!="
+
+    char *param1    = strtok(condition, " ");
+    char *operator  = strtok(NULL, " ");
+    char *param2    = strtok(NULL, "\n");
+
+    if (param1 == NULL || operator == NULL || param2 == NULL)
+    {
+        printf("ET ERROR: condition must have two operands and an operator\n");
+        return FAILED;
+    }
+
+    int value1, value2;
+
+    if (strpbrk(param1, FULL_ALPHABET))
+    {
+        if (isValidVar(*param1) == FAILED)
+            return FAILED;
+        value1 = VAR_VALUE(*param1);
+    }
+    else if (isStrNumber(param1) == SUCCESSFUL)
+    {
+        value1 = strtod(param1, NULL);
+    }
+    else
+    {
+        printf("ET ERROR: %s not a variable or number\n", param1);
+        return FAILED;
+    }
+
+    if (param2 && strpbrk(param2, FULL_ALPHABET))
+    {
+        if (isValidVar(*param2) == FAILED)
+            return FAILED;
+        value2 = VAR_VALUE(*param2);
+    }
+    else if (isStrNumber(param2) == SUCCESSFUL)
+    {
+        value2 = strtod(param2, NULL);
+    }
+    else
+    {
+        printf("ET ERROR: %s not a variable or number\n", param2);
+        return FAILED;
+    }
+
+    if (!strcmp(operator, LESS_THAN))
+        return value1 < value2;
+    else if (!strcmp(operator, LESS_EQUAL_THAN))
+        return value1 <= value2;
+    else if (!strcmp(operator, HIGHER_THAN))
+        return value1 > value2;
+    else if (!strcmp(operator, HIGHER_EQUAL_THAN))
+        return value1 >= value2;
+    else if (!strcmp(operator, EQUAL_TO))
+        return value1 == value2;
+    else if (!strcmp(operator, DIFF_FROM))
+        return value1 != value2;
+    else
+    {
+        printf("ET ERROR: '%s' is not a valid comparison operator\n", operator);
+        return FAILED;
+    }
+
+}
+
+// -------------------------------------------- //
 // --------------- INSTRUCTIONS --------------- //
 // -------------------------------------------- //
 int let(char * arg)
@@ -373,6 +477,7 @@ int let(char * arg)
         return FAILED;
     }
 
+    /* buscar la variable destino antes del '=' */
     varName = '\0';
     for (char *p = arg; p < eq; p++)
     {
@@ -532,5 +637,70 @@ int print(const char * varName)
         return FAILED;
 
     printf("%d\n", VAR_VALUE(var));
+    return SUCCESSFUL;
+}
+
+int goTo(InstructionsListPtr *cursor, char * arg, int * jumped)
+{
+    if (arg != NULL)
+        trimWhitespace(arg);
+
+    if (isStrNumber(arg) == FAILED)
+        return FAILED;
+
+    int destLine = strtod(arg, NULL);
+    InstructionsListPtr actual_instruction = *cursor;
+
+    *cursor = findLine(destLine);
+
+    if (*cursor)
+    {
+        *jumped = 1;
+        return SUCCESSFUL;
+    }
+    else
+    {
+        printf("ET ERROR: line %d not found\n", destLine);
+        *cursor = actual_instruction;
+        return FAILED;
+    }
+}
+
+int ifGoto(InstructionsListPtr *cursor, char * arg, int * jumped)
+{
+    char * gotoInstruction = strstr(arg, "goto");
+
+    if (gotoInstruction == NULL)
+    {
+        printf("ET ERROR: if statement is missing 'goto'\n");
+        return FAILED;
+    }
+
+    int condLen = gotoInstruction - arg;
+    char condition[condLen + 1];
+    strncpy(condition, arg, condLen);
+    condition[condLen] = '\0';
+    trimWhitespace(condition);
+    
+    char * posToJump;
+    int condResult;
+
+    posToJump = gotoInstruction + 4;
+    while (*posToJump && isspace((unsigned char)*posToJump))
+        posToJump++;
+    trimWhitespace(posToJump);
+
+    condResult = isTrue(condition);
+    
+    if (condResult == FAILED)
+        return FAILED;
+    if (!condResult)
+        return SUCCESSFUL; /* condición falsa: no salta, pero no es error */
+    
+    if (isStrNumber(posToJump) == FAILED)
+        return FAILED;
+    if (goTo(cursor, posToJump, jumped) == FAILED)
+        return FAILED;
+
     return SUCCESSFUL;
 }
