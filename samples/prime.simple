@@ -1,0 +1,23 @@
+1 rem Check whether a number is prime
+2 rem Prints 1 if it is prime, 0 otherwise
+3 rem -------------
+4 input n
+5 if n == 0 goto 34
+6 if n == 1 goto 34
+7 if n == 2 goto 24
+8 rem -------------
+9 let i = 2
+10 let r = n % i
+11 if r == 0 goto 34
+12 let q = n / i
+13 if q < i goto 24
+14 let i = i + 1
+15 goto 10
+16 rem -------------
+24 let p = 1
+25 print p
+26 goto 42
+27 rem -------------
+34 let p = 0
+35 print p
+42 end

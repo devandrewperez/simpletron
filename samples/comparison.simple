@@ -1,0 +1,13 @@
+1 rem Compare two numbers and print the larger one
+2 rem ------------- 
+3 input x
+4 input y
+5 rem -------------
+6 if x > y goto 9  
+7 goto 12
+8 rem -------------
+9 print x
+10 goto 99
+11 rem -------------
+12 print y
+99 end
