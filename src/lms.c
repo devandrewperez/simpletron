@@ -37,14 +37,26 @@ int acumulator = 0;
 int instructions[POS_COUNT] = {0};
 int *cursor_instruction = instructions;
 
-
-void send_welcome_msg(void)
-{
-    printf( "*** Welcome back to Simpletron! ***\n");
-}
+void read(void);
+void read_str(void);
+void write(void);
+void write_str(void);
+void put_newline(void); 
+void load(void);
+void store(void);
+void addition(void);
+void substraction(void);
+void multiply(void);
+void divide(void);
+void module(void);
+void power(void);
+void jump(const int pos);
+void jump_if_neg(const int pos);
+void jump_if_zero(const int pos);
 
 int get_instructions(void)
 {
+    printf( "*** Welcome back to Simpletron! ***\n");
     char file_input_name[100] = {'\0'};
     printf("\nEnter source file name:\n  >> ");
     scanf("%s", file_input_name);
