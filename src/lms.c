@@ -21,8 +21,7 @@
 #define END         50      // FF
 /* ############################ */
 
-
-#define END_INPUT   -99999
+// #define END_INPUT   -99999
 #define POS_COUNT   1000
 
 #define OUTPUT_FILE_NAME "output.txt"
@@ -87,90 +86,90 @@ void exec_instructions(void)
     cursor_instruction = instructions;
     ptrOutputFile = fopen(OUTPUT_FILE_NAME, "w+");
     printf("\n*** Executing instructions ***\n\n");
+
+    int instruction, mem_pos;
+
     do
     {
-        if (*cursor_instruction == -99999 ) break;
-        int instruction = *cursor_instruction / POS_COUNT;
-        int mem_pos     = *cursor_instruction % POS_COUNT;
-        if (instruction == END && !(cursor_instruction+1)) break;
+        instruction = *cursor_instruction / POS_COUNT;
+        mem_pos     = *cursor_instruction % POS_COUNT;
+        if (instruction == END) break;
         switch (instruction)
         {
-        case READ:
-            jump(mem_pos);
-            read();
-            break;
-        case WRITE:
-            jump(mem_pos);
-            write();
-            break;
-        case READ_STR:
-            jump(mem_pos);
-            read_str();
-            break;
-        case WRITE_STR:
-            jump(mem_pos);
-            write_str();
-            break;
-        case PUT_NEWLINE:
-            jump(mem_pos);
-            put_newline();
-            break;
-        case LOAD:
-            jump(mem_pos);
-            load();
-            break;
-        case STORE:
-            jump(mem_pos);
-            store();
-            break;
-        case ADDITION:
-            jump(mem_pos);
-            addition();
-            break;
-        case SUBSTRACT:
-            jump(mem_pos);
-            substraction();
-            break;
-        case MULTIPLY:
-            jump(mem_pos);
-            multiply();
-            break;
-        case DIVIDE:
-            jump(mem_pos);
-            divide();
-            break;
-        case MODULE:
-            jump(mem_pos);
-            module();
-            break;
-        case POWER:
-            jump(mem_pos);
-            power();
-            break;
-        case JUMPTO:
-            jump(mem_pos);
-            break;
-        case JUMPIFNEG:
-            jump_if_neg(mem_pos);
-            break;
-        case JUMPIFCERO:
-            jump_if_zero(mem_pos);
-            break;
-        case END:
-            break;
-        default:
-            printf( "Invalid instruction:\n"
-                    "    +%02d%02d\n"
-                    "    ~^^~~\n",
-                    instruction, mem_pos);
-            fprintf(ptrOutputFile,  "Invalid instruction:\n"
-                                    "    +%02d%03d\n"
-                                    "    ~^^~~\n",
-                                    instruction, mem_pos);
-            break;
+            case READ:
+                jump(mem_pos);
+                read();
+                break;
+            case WRITE:
+                jump(mem_pos);
+                write();
+                break;
+            case READ_STR:
+                jump(mem_pos);
+                read_str();
+                break;
+            case WRITE_STR:
+                jump(mem_pos);
+                write_str();
+                break;
+            case PUT_NEWLINE:
+                jump(mem_pos);
+                put_newline();
+                break;
+            case LOAD:
+                jump(mem_pos);
+                load();
+                break;
+            case STORE:
+                jump(mem_pos);
+                store();
+                break;
+            case ADDITION:
+                jump(mem_pos);
+                addition();
+                break;
+            case SUBSTRACT:
+                jump(mem_pos);
+                substraction();
+                break;
+            case MULTIPLY:
+                jump(mem_pos);
+                multiply();
+                break;
+            case DIVIDE:
+                jump(mem_pos);
+                divide();
+                break;
+            case MODULE:
+                jump(mem_pos);
+                module();
+                break;
+            case POWER:
+                jump(mem_pos);
+                power();
+                break;
+            case JUMPTO:
+                jump(mem_pos);
+                break;
+            case JUMPIFNEG:
+                jump_if_neg(mem_pos);
+                break;
+            case JUMPIFCERO:
+                jump_if_zero(mem_pos);
+                break;
+            default:
+                printf( "Invalid instruction:\n"
+                        "    +%02d%02d\n"
+                        "    ~^^~~\n",
+                        instruction, mem_pos);
+                fprintf(ptrOutputFile,  "Invalid instruction:\n"
+                                        "    +%02d%03d\n"
+                                        "    ~^^~~\n",
+                                        instruction, mem_pos);
+                break;
         }
         cursor_instruction++;
-    } while (1);
+    }while(1);
 
     fclose(ptrOutputFile);
     printf("\n*** Execution finished ***\n");
@@ -360,30 +359,14 @@ void jump(const int pos)
 
 void jump_if_neg(const int pos)
 {
-    int *cursor_instruction_copy = cursor_instruction;
-    while (*cursor_instruction_copy/POS_COUNT != END) cursor_instruction_copy++;
     if (acumulator < 0)
-    {
         jump(pos);
-        *(cursor_instruction_copy + 1) = 0;
-        return;
-    }
-
-    cursor_instruction = cursor_instruction_copy+1;
     return;
 }
 
 void jump_if_zero(const int pos)
 {
-    int *cursor_instruction_copy = cursor_instruction;
-    while (*cursor_instruction_copy/POS_COUNT != END) cursor_instruction_copy++;
     if (acumulator == 0)
-    {
         jump(pos);
-        *(cursor_instruction_copy + 1) = 0;
-        return;
-    }
-
-    cursor_instruction = cursor_instruction_copy+1;
     return;
 }

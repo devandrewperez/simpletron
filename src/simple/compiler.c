@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "simple.h"
+#include "simple_compiler.h"
 #include "postfix.h"
 
-#define REM     "rem"   // comment
+#define REM     "rem"   // comentary
 #define LET     "let"   // declare variables
 #define INPUT   "input" // get a value
 #define PRINT   "print" // print a value
@@ -27,7 +27,7 @@
 #define   VAR_USE(varName)     vars[varName-'a'].using
 
 #define SUCCESSFUL  1
-#define FAILED      2           // change to -1 later if needed
+#define FAILED      2           // cambiar mas adelante a -1 si es necesario
 
 
 typedef struct
@@ -195,7 +195,7 @@ void execInstructions(void)
     if (lineExec == FAILED)
         printf("\n*** Execution finished with error ***\n");
     else
-        printf("\n*** Execution finished successfully  ***\n");
+        printf("\n*** Execution finished succefully  ***\n");
 
     // fclose(ptrOutputFile);
     // printf("*** Results saved in \"%s\" ***\n", OUTPUT_FILE_NAME);
@@ -253,7 +253,7 @@ int insert(int lineId, char * instruction, char * arg)
     {
         if (lastLine->line->lineId > new->line->lineId)
         {
-            printf("ERROR: Line %d can't be after line %d, but the lines should be ordered from lowest to highest", 
+            printf("ERROR: Line %d can't be after line %d, but the limes should be ordered from less to higher", 
                     new->line->lineId, lastLine->line->lineId);
             free(newLine->instruction);
             free(newLine->argument);
@@ -477,7 +477,7 @@ int let(char * arg)
         return FAILED;
     }
 
-    /* find the destination variable before '=' */
+    /* buscar la variable destino antes del '=' */
     varName = '\0';
     for (char *p = arg; p < eq; p++)
     {
@@ -613,11 +613,13 @@ int input(char * varName)
 
     if (VAR_PTR(var) == NULL)
         VAR_PTR(var) = cursorMemory++;
+    printf("  > ");
     if (scanf("%d", VAR_PTR(var)) != 1)
     {
         printf("ET ERROR: failed to read integer from input\n");
         return FAILED;
     }
+    printf("\n");
     VAR_USE(var) = 1;
     return SUCCESSFUL;
 }
@@ -695,7 +697,7 @@ int ifGoto(InstructionsListPtr *cursor, char * arg, int * jumped)
     if (condResult == FAILED)
         return FAILED;
     if (!condResult)
-        return SUCCESSFUL; /* false condition: do not jump, not an error */
+        return SUCCESSFUL; /* condición falsa: no salta, pero no es error */
     
     if (isStrNumber(posToJump) == FAILED)
         return FAILED;
